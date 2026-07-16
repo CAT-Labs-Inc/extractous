@@ -164,13 +164,18 @@ pub fn create_vm_isolate() -> JavaVM {
     unsafe {
         let vm_options: Vec<sys::JavaVMOption> = vec![
             // Set java.library.path to be able to load libawt.so, which must be in the same dir as libtika_native.so
+            // NOTE: option strings are passed to a C API and must be NUL-terminated (use c"...").
             sys::JavaVMOption {
-                optionString: "-Djava.library.path=.".as_ptr() as *mut c_char,
+                optionString: c"-Djava.library.path=.".as_ptr() as *mut c_char,
                 extraInfo: std::ptr::null_mut(),
             },
             // enable awt headless mode
+            // NOTE: this MUST begin with "-D". Without it the option is malformed and,
+            // because the VM is created with ignoreUnrecognized=JNI_TRUE, it is silently
+            // dropped — leaving AWT non-headless, which deadlocks when PDFBox decodes
+            // (inline) images inside this embedded native image (no window server).
             sys::JavaVMOption {
-                optionString: "Djava.awt.headless=true".as_ptr() as *mut c_char,
+                optionString: c"-Djava.awt.headless=true".as_ptr() as *mut c_char,
                 extraInfo: std::ptr::null_mut(),
             },
         ];
