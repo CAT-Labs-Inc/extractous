@@ -18,9 +18,20 @@ pub(crate) fn vm() -> &'static JavaVM {
     GRAAL_VM.get_or_init(create_vm_isolate)
 }
 
+/// Attach the calling thread for the duration of this call.
+///
+/// NOTE: `attach_current_thread_as_daemon` (leaving Rayon workers permanently
+/// attached) was measured to cost +62% CPU for identical work at 12 threads —
+/// GraalVM CE only ships the stop-the-world Serial collector, which must suspend
+/// every attached thread at each collection, so keeping all workers attached
+/// lengthens every pause. The per-call attach/detach is cheaper than that.
+///
+/// The `AttachGuard` detaches on drop, which also implicitly reclaims JNI local
+/// references. The explicit `AutoLocal` scoping in `wrappers.rs` is kept anyway:
+/// it bounds the local-reference table *within* a single call, which is what
+/// stops all ~1000 extracted images being pinned in the Java heap at once.
 fn get_vm_attach_current_thread<'local>() -> ExtractResult<AttachGuard<'local>> {
-    // Attaching a thead that is already attached is a no-op. Good to have this in case this method
-    // is called from another thread
+    // Attaching a thread that is already attached is a no-op.
     let env = vm().attach_current_thread()?;
     Ok(env)
 }

@@ -190,9 +190,8 @@ public class TikaNativeMain {
         }
 
         try {
-            final TikaConfig config = TikaConfig.getDefaultConfig();
             final ParseContext parsecontext = new ParseContext();
-            final Parser parser = new AutoDetectParser(config);
+            final Parser parser = TikaShared.parser();
 
             parsecontext.set(Parser.class, parser);
             parsecontext.set(PDFParserConfig.class, pdfConfig);
@@ -313,9 +312,8 @@ public class TikaNativeMain {
     ) {
         try {
 
-            final TikaConfig config = TikaConfig.getDefaultConfig();
             final ParseContext parsecontext = new ParseContext();
-            final Parser parser = new AutoDetectParser(config);
+            final Parser parser = TikaShared.parser();
             final Charset charset = Charset.forName(charsetName, StandardCharsets.UTF_8);
 
             parsecontext.set(Parser.class, parser);
@@ -438,10 +436,9 @@ public class TikaNativeMain {
         final List<EmbeddedExtractResult.EmbeddedDocument> embeddedDocuments = new ArrayList<>();
         
         try {
-            final TikaConfig config = TikaConfig.getDefaultConfig();
             final ParseContext parseContext = new ParseContext();
-            final Parser baseParser = new AutoDetectParser(config);
-            
+            final Parser baseParser = TikaShared.parser();
+
             // Configure parse context
             parseContext.set(Parser.class, baseParser);
             parseContext.set(PDFParserConfig.class, pdfConfig);
