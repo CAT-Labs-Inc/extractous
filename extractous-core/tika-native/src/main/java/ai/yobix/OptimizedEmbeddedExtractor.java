@@ -101,10 +101,9 @@ public class OptimizedEmbeddedExtractor {
         final int[] documentCount = {0};
         
         try {
-            final TikaConfig config = TikaConfig.getDefaultConfig();
             final ParseContext parseContext = new ParseContext();
-            final Parser baseParser = new AutoDetectParser(config);
-            
+            final Parser baseParser = TikaShared.parser();
+
             // Configure parse context
             parseContext.set(Parser.class, baseParser);
             parseContext.set(PDFParserConfig.class, pdfConfig);

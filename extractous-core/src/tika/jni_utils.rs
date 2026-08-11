@@ -1,3 +1,5 @@
+use std::env;
+use std::ffi::CString;
 use std::os::raw::{c_char, c_void};
 
 use crate::errors::{Error, ExtractResult};
@@ -154,6 +156,27 @@ pub fn jni_check_exception(env: &mut JNIEnv) -> ExtractResult<bool> {
     Ok(false)
 }
 
+/// Reads an isolate sizing option from the environment, returning the full VM
+/// option string (e.g. `-Xmx4g`) when the variable is set and non-empty.
+///
+/// GraalVM CE native images only ship the Serial collector (G1 is Oracle
+/// GraalVM + Linux only), and this isolate is shared by every Rayon worker, all
+/// allocating extracted image buffers concurrently. Serial GC is stop-the-world
+/// and single-threaded, so collection frequency — governed largely by young-gen
+/// size — bounds how well extraction scales across cores.
+///
+/// No defaults are applied: unset variables leave the isolate exactly as it was
+/// configured before, so this cannot regress an existing deployment. Tune with
+/// `EXTRACTOUS_MAX_HEAP` (`-Xmx`) and `EXTRACTOUS_YOUNG_GEN` (`-Xmn`).
+fn sizing_option(var: &str, flag: &str) -> Option<CString> {
+    let value = env::var(var).ok()?;
+    let value = value.trim();
+    if value.is_empty() {
+        return None;
+    }
+    CString::new(format!("{flag}{value}")).ok()
+}
+
 /// Creates a new graalvm isolate using the invocation api. A [GraalVM isolate](https://medium.com/graalvm/isolates-and-compressed-references-more-flexible-and-efficient-memory-management-for-graalvm-a044cc50b67e) is a disjoint heap
 /// that allows multiple tasks in the same VM instance to run independently.
 ///
@@ -162,29 +185,47 @@ pub fn jni_check_exception(env: &mut JNIEnv) -> ExtractResult<bool> {
 /// linked in by the build script.
 pub fn create_vm_isolate() -> JavaVM {
     unsafe {
-        let vm_options: Vec<sys::JavaVMOption> = vec![
+        // These strings are handed to a C API and must stay alive, and
+        // NUL-terminated, until after JNI_CreateJavaVM returns — so own them in a
+        // vec that outlives the call rather than building them inline.
+        let mut option_strings: Vec<CString> = vec![
             // Set java.library.path to be able to load libawt.so, which must be in the same dir as libtika_native.so
-            // NOTE: option strings are passed to a C API and must be NUL-terminated (use c"...").
-            sys::JavaVMOption {
-                optionString: c"-Djava.library.path=.".as_ptr() as *mut c_char,
-                extraInfo: std::ptr::null_mut(),
-            },
+            CString::new("-Djava.library.path=.").expect("static option"),
             // enable awt headless mode
             // NOTE: this MUST begin with "-D". Without it the option is malformed and,
             // because the VM is created with ignoreUnrecognized=JNI_TRUE, it is silently
             // dropped — leaving AWT non-headless, which deadlocks when PDFBox decodes
             // (inline) images inside this embedded native image (no window server).
-            sys::JavaVMOption {
-                optionString: c"-Djava.awt.headless=true".as_ptr() as *mut c_char,
-                extraInfo: std::ptr::null_mut(),
-            },
+            CString::new("-Djava.awt.headless=true").expect("static option"),
         ];
+        option_strings.extend(sizing_option("EXTRACTOUS_MAX_HEAP", "-Xmx"));
+        option_strings.extend(sizing_option("EXTRACTOUS_YOUNG_GEN", "-Xmn"));
+
+        let vm_options: Vec<sys::JavaVMOption> = option_strings
+            .iter()
+            .map(|opt| sys::JavaVMOption {
+                optionString: opt.as_ptr() as *mut c_char,
+                extraInfo: std::ptr::null_mut(),
+            })
+            .collect();
+
+        // Malformed options are silently dropped under JNI_TRUE, which has already
+        // cost us once (see the headless note above). Set
+        // EXTRACTOUS_STRICT_VM_OPTIONS=1 to make the VM refuse to start on an
+        // unrecognized option, so tuning can be validated rather than assumed.
+        let strict = env::var("EXTRACTOUS_STRICT_VM_OPTIONS")
+            .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+            .unwrap_or(false);
 
         let mut args = sys::JavaVMInitArgs {
             version: sys::JNI_VERSION_1_8,
             nOptions: vm_options.len() as sys::jint,
             options: vm_options.as_ptr() as *mut sys::JavaVMOption,
-            ignoreUnrecognized: sys::JNI_TRUE,
+            ignoreUnrecognized: if strict {
+                sys::JNI_FALSE
+            } else {
+                sys::JNI_TRUE
+            },
         };
         let mut ptr: *mut sys::JavaVM = std::ptr::null_mut();
         let mut env: *mut sys::JNIEnv = std::ptr::null_mut();
