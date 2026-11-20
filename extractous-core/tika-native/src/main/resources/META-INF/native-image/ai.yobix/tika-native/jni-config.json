@@ -1,0 +1,128 @@
+[
+  {
+    "name": "ai.yobix.TikaNativeMain",
+    "methods": [
+      {
+        "name": "extractEmbedded",
+        "parameterTypes": [
+          "java.lang.String",
+          "org.apache.tika.parser.pdf.PDFParserConfig",
+          "org.apache.tika.parser.microsoft.OfficeParserConfig",
+          "org.apache.tika.parser.ocr.TesseractOCRConfig"
+        ]
+      },
+      {
+        "name": "extractEmbeddedFromBytes",
+        "parameterTypes": [
+          "java.nio.ByteBuffer",
+          "org.apache.tika.parser.pdf.PDFParserConfig",
+          "org.apache.tika.parser.microsoft.OfficeParserConfig",
+          "org.apache.tika.parser.ocr.TesseractOCRConfig"
+        ]
+      },
+      {
+        "name": "extractEmbeddedOptimized",
+        "parameterTypes": [
+          "java.lang.String",
+          "org.apache.tika.parser.pdf.PDFParserConfig",
+          "org.apache.tika.parser.microsoft.OfficeParserConfig",
+          "org.apache.tika.parser.ocr.TesseractOCRConfig"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "ai.yobix.EmbeddedExtractResult",
+    "fields": [
+      {"name": "errorCode"},
+      {"name": "errorMessage"},
+      {"name": "embeddedDocuments"}
+    ],
+    "methods": [
+      {"name": "<init>", "parameterTypes": ["java.util.List"]},
+      {"name": "<init>", "parameterTypes": ["byte", "java.lang.String"]},
+      {"name": "getErrorCode", "parameterTypes": []},
+      {"name": "getErrorMessage", "parameterTypes": []},
+      {"name": "getEmbeddedDocuments", "parameterTypes": []},
+      {"name": "hasError", "parameterTypes": []}
+    ]
+  },
+  {
+    "name": "ai.yobix.EmbeddedExtractResult$EmbeddedDocument",
+    "fields": [
+      {"name": "resourceName"},
+      {"name": "contentType"},
+      {"name": "content"},
+      {"name": "embeddedRelationshipId"}
+    ],
+    "methods": [
+      {"name": "<init>", "parameterTypes": ["java.lang.String", "java.lang.String", "[B", "java.lang.String"]},
+      {"name": "getResourceName", "parameterTypes": []},
+      {"name": "getContentType", "parameterTypes": []},
+      {"name": "getContent", "parameterTypes": []},
+      {"name": "getEmbeddedRelationshipId", "parameterTypes": []}
+    ]
+  },
+  {
+    "name": "ai.yobix.OptimizedEmbeddedExtractor$OptimizedResult",
+    "fields": [
+      {"name": "errorCode"},
+      {"name": "errorMessage"},
+      {"name": "packedData"},
+      {"name": "documentCount"}
+    ],
+    "methods": [
+      {"name": "<init>", "parameterTypes": ["java.nio.ByteBuffer", "int"]},
+      {"name": "<init>", "parameterTypes": ["byte", "java.lang.String"]},
+      {"name": "getErrorCode", "parameterTypes": []},
+      {"name": "getErrorMessage", "parameterTypes": []},
+      {"name": "getPackedData", "parameterTypes": []},
+      {"name": "getDocumentCount", "parameterTypes": []}
+    ]
+  },
+  {
+    "name": "java.util.ArrayList",
+    "methods": [
+      {"name": "<init>", "parameterTypes": []},
+      {"name": "size", "parameterTypes": []},
+      {"name": "get", "parameterTypes": ["int"]}
+    ]
+  },
+  {
+    "name": "java.util.List",
+    "methods": [
+      {"name": "size", "parameterTypes": []},
+      {"name": "get", "parameterTypes": ["int"]}
+    ]
+  },
+  {
+    "name": "java.nio.ByteBuffer",
+    "methods": [
+      {"name": "capacity", "parameterTypes": []},
+      {"name": "position", "parameterTypes": []},
+      {"name": "remaining", "parameterTypes": []},
+      {"name": "allocateDirect", "parameterTypes": ["int"]},
+      {"name": "rewind", "parameterTypes": []},
+      {"name": "get", "parameterTypes": ["[B"]}
+    ]
+  },
+  {
+    "name": "java.nio.DirectByteBuffer",
+    "methods": [
+      {"name": "capacity", "parameterTypes": []},
+      {"name": "position", "parameterTypes": []},
+      {"name": "remaining", "parameterTypes": []},
+      {"name": "rewind", "parameterTypes": []},
+      {"name": "get", "parameterTypes": ["[B"]}
+    ]
+  },
+  {
+    "name": "java.nio.Buffer",
+    "methods": [
+      {"name": "capacity", "parameterTypes": []},
+      {"name": "position", "parameterTypes": []},
+      {"name": "remaining", "parameterTypes": []},
+      {"name": "rewind", "parameterTypes": []}
+    ]
+  }
+]

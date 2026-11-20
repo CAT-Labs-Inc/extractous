@@ -1,0 +1,35 @@
+[
+  {
+    "name": "ai.yobix.EmbeddedExtractResult",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "ai.yobix.EmbeddedExtractResult$EmbeddedDocument",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "ai.yobix.OptimizedEmbeddedExtractor$OptimizedResult",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "java.nio.ByteBuffer",
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "java.nio.DirectByteBuffer",
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  },
+  {
+    "name": "java.nio.HeapByteBuffer",
+    "allDeclaredMethods": true,
+    "allPublicMethods": true
+  }
+]

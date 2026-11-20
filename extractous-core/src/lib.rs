@@ -76,6 +76,11 @@ pub use errors::*;
 // extractor module is the config interface
 mod config;
 pub use config::*;
+
+// embedded module for embedded document extraction
+mod embedded;
+pub use embedded::*;
+
 // extractor module is the main public api interface
 mod extractor;
 pub use extractor::*;
@@ -84,7 +89,13 @@ pub use extractor::*;
 mod tika {
     mod jni_utils;
     mod parse;
+    mod parse_embedded;
+    mod parse_embedded_batch;
+    mod parse_embedded_optimized;
     mod wrappers;
     pub use parse::*;
+    pub use parse_embedded::*;
+    pub use parse_embedded_batch::*;
+    pub use parse_embedded_optimized::*;
     pub use wrappers::JReaderInputStream;
 }

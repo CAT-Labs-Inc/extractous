@@ -4,7 +4,7 @@ plugins {
 }
 
 
-def tikaVersion = "2.9.2"
+def tikaVersion = "3.2.1"
 def numThreads = Runtime.getRuntime().availableProcessors()
 def currentOs = org.gradle.internal.os.OperatingSystem.current()
 
@@ -34,7 +34,7 @@ dependencies {
     implementation 'org.apache.logging.log4j:log4j-to-slf4j:3.0.0-beta2'
 
     implementation("org.apache.tika:tika-core:$tikaVersion")
-    implementation "org.apache.tika:tika-parsers-standard:$tikaVersion" // Apache Tika parsers
+    implementation "org.apache.tika:tika-parsers-standard-package:$tikaVersion" // Apache Tika parsers
 
     implementation("org.apache.tika:tika-parser-microsoft-module:$tikaVersion")
     implementation "org.apache.tika:tika-parser-pdf-module:$tikaVersion"
@@ -44,7 +44,8 @@ dependencies {
     implementation "org.apache.tika:tika-parser-cad-module:$tikaVersion"
     implementation "org.apache.tika:tika-parser-crypto-module:$tikaVersion"
     implementation "org.apache.tika:tika-parser-font-module:$tikaVersion"
-    implementation "org.apache.tika:tika-parser-html-commons:$tikaVersion"
+    // no longer required in newer versions of tika
+    // implementation "org.apache.tika:tika-parser-html-commons:$tikaVersion"
     implementation "org.apache.tika:tika-parser-image-module:$tikaVersion"
     implementation "org.apache.tika:tika-parser-mail-module:$tikaVersion"
     implementation "org.apache.tika:tika-parser-miscoffice-module:$tikaVersion"
@@ -54,9 +55,43 @@ dependencies {
     implementation "org.apache.tika:tika-parser-text-module:$tikaVersion"
     implementation "org.apache.tika:tika-parser-xml-module:$tikaVersion"
     implementation "org.apache.tika:tika-parser-webarchive-module:$tikaVersion"
+    implementation "jakarta.mail:jakarta.mail-api:2.1.2"
+}
+
+tasks.register('runAgent', JavaExec) {
+    dependsOn classes                      // ensure byte-code is built
+    group = 'verification'
+    description = 'Runs Tika with the native-image agent to generate GraalVM configs'
+
+    mainClass = 'ai.yobix.AgentRunner'
+    classpath = sourceSets.main.runtimeClasspath
+
+    // --- file you want to analyse -----
+    // If a file fails to parse, we should pass it here to generate metadata for it, 
+    // then merge that metadata into existing.
+    args '../../test_files/documents/vodafone.xlsx'
+
+    // --- GraalVM agent  ---------------
+    jvmArgs "-agentlib:native-image-agent=config-output-dir=graal-agent"
 }
 
 graalvmNative {
+    // The merge option didn't work as expected so currently not using it
+    // It should work by running `.gradlew -Pagent runAgent` which should generate metadata
+    // in the `graal-agent` directory. We should then be able to merge that metadata into the 
+    // `src/main/resources/META-INF/$group/$version` directory, but the merge didn't include the new metadata.
+    // Likely user error.
+    // agent {
+    //     defaultMode = "standard"
+    //     metadataCopy {
+    //         mergeWithExisting = true
+    //         inputTaskNames.add("runAgent")
+    //         outputDirectories.add("src/main/resources/META-INF/$group/$version")
+    //     }
+    // }
+    metadataRepository { 
+        enabled = true 
+    }
     // Make sure this is off to use the same GraalVM version thant the one used by gradle
     // Setting the version is left outside of this script in github workflow or developer build environment
     toolchainDetection = false

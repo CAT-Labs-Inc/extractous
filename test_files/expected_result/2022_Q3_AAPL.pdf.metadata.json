@@ -72,7 +72,7 @@
     "pdf:hasXFA": [
         "false"
     ],
-    "access_permission:can_print_degraded": [
+    "access_permission:can_print_faithful": [
         "true"
     ],
     "pdf:producer": [

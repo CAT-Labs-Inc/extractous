@@ -366,7 +366,10 @@ pub fn install_graalvm_ce(install_dir: &PathBuf) -> PathBuf {
 
                 for i in 0..archive.len() {
                     let mut file = archive.by_index(i).unwrap();
-                    let outpath = install_dir.join(file.name());
+                    let outpath = install_dir.join(
+                        file.enclosed_name()
+                            .expect("GraalVM archive entry escapes the install dir"),
+                    );
 
                     if file.is_dir() {
                         fs::create_dir_all(&outpath).unwrap();
